@@ -1,12 +1,5 @@
 var mongoose = require('mongoose'),
-    Template = mongoose.model('Templates');
-
-exports.index = function (req, res, next) {
-    return res.json({
-        status: 'Template Service Api',
-        message: 'Welcome'
-    });
-};
+    Category = mongoose.model('Category');
 
 exports.view = function (req, res, next) {
 };

@@ -1,1 +1,3 @@
-require('Templates');
+require('./Photo');
+require('./Category');
+require('./Tag');
