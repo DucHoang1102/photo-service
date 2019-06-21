@@ -20,30 +20,30 @@ routerGroup.put('/photos/:id', photoController.update);
 routerGroup.delete('/photos/:id', photoController.delete);
 
 /*
- * api/photos/categorys
+ * api/categorys
  */
-routerGroup.get('/photos/categorys', categoryController.view);
+routerGroup.get('/categorys', categoryController.view);
 
-routerGroup.post('/photos/categorys', categoryController.new);
+routerGroup.post('/categorys', categoryController.new);
 
-routerGroup.get('/photos/categorys/:id', categoryController.details);
+routerGroup.get('/categorys/:id', categoryController.details);
 
-routerGroup.put('/photos/categorys/:id', categoryController.update);
+routerGroup.put('/categorys/:id', categoryController.update);
 
-routerGroup.delete('/photos/categorys/:id', categoryController.delete);
+routerGroup.delete('/categorys/:id', categoryController.delete);
 
 /*
- * api/photos/tags
+ * api/tags
  */
-routerGroup.get('/photos/tags', tagController.view);
+routerGroup.get('/tags', tagController.view);
 
-routerGroup.post('/photos/tags', tagController.new);
+routerGroup.post('/tags', tagController.new);
 
-routerGroup.get('/photos/tags/:id', tagController.details);
+routerGroup.get('/tags/:id', tagController.details);
 
-routerGroup.put('/photos/tags/:id', tagController.update);
+routerGroup.put('/tags/:id', tagController.update);
 
-routerGroup.delete('/photos/tags/:id', tagController.delete);
+routerGroup.delete('/tags/:id', tagController.delete);
 
 /*
  * Entry point
