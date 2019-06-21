@@ -46,7 +46,7 @@ routerGroup.put('/photos/tags/:id', tagController.update);
 routerGroup.delete('/photos/tags/:id', tagController.delete);
 
 /*
- * Entry poind
+ * Entry point
  */
 routerIndex.use('/api', routerGroup);
 
