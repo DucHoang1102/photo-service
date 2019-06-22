@@ -2,7 +2,7 @@ var routerIndex        = require('express').Router();
 var routerGroup        = require('express').Router();
 var photoController    = require('../controllers/photo');
 var categoryController = require('../controllers/category');
-var tagController      = require('../controllers/tag');
+var tagController      = require('../controllers/tag.js');
 
 /*
  * api/photos
@@ -39,11 +39,11 @@ routerGroup.get('/tags', tagController.view);
 
 routerGroup.post('/tags', tagController.new);
 
-routerGroup.get('/tags/:id', tagController.details);
+routerGroup.get('/tags/:slug', tagController.details);
 
-routerGroup.put('/tags/:id', tagController.update);
+routerGroup.put('/tags/:slug', tagController.update);
 
-routerGroup.delete('/tags/:id', tagController.delete);
+routerGroup.delete('/tags/:slug', tagController.delete);
 
 /*
  * Entry point
