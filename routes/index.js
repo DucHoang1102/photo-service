@@ -13,11 +13,11 @@ routerGroup.get('/photos', photoController.view);
 
 routerGroup.post('/photos', photoController.new);
 
-routerGroup.get('/photos/:id', photoController.details);
+routerGroup.get('/photos/:name', photoController.details);
 
-routerGroup.put('/photos/:id', photoController.update);
+routerGroup.put('/photos/:name', photoController.update);
 
-routerGroup.delete('/photos/:id', photoController.delete);
+routerGroup.delete('/photos/:name', photoController.delete);
 
 /*
  * api/categorys
