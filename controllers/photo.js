@@ -1,5 +1,8 @@
-var mongoose = require('mongoose'),
-    Photo = mongoose.model('Photo');
+var mongoose      = require('mongoose'),
+    Photo         = mongoose.model('Photo'),
+    nameGenerator = require('id-random-generator'),
+    fs            = require('fs'),
+    s3            = require('../aws/config');
 
 exports.index = function (req, res, next) {
     return res.json({
@@ -30,12 +33,68 @@ exports.view = function (req, res, next) {
 };
 
 exports.new = function (req, res, next) {
-    var photo = new Photo(req.body.photo);
+    var results = [];
+    var exp = ['image/jpeg', 'image/png'];
+    
+    // Case: only 1 photo
+    if (!Array.isArray(req.files.photos))
+        req.files.photos = [req.files.photos];
 
-    return photo.save().then(results => {
-        return res.json( { photos: results } );
+    // Filter photo and rename random photo
+    var photos = req.files.photos
+        .filter(item => {
+            if ( exp.includes(item.mimetype) )
+                return true;
+        })
+        .map(item => {
+            if (!req.body['keep-name']) 
+                item.name = nameGenerator.generateChar(6) + '.png';
 
-    }).catch( err => res.json( { errors: err.message } ));
+            return item;
+        });
+
+    // Case: Photos list empty
+    if (photos.length === 0)
+        return res.json({ photos: [] });
+
+    // First: Save database -> Second: Upload to s3 AWS
+    for (let img of photos) {
+        var photo = new Photo();
+        photo.name = img.name;
+        photo.size = img.size;
+
+        photo.save().then(photo => {
+            var params = {
+                Bucket: process.env.AWS_BUCKET + '/' + process.env.AWS_FOLDER,
+                Key: photo.name,
+                Body: img.data,
+                ContentType: 'image/png'
+            };
+
+            s3.upload(params, (s3Err, data) => {
+                if (s3Err) throw s3Err;
+
+                var params = {
+                    Bucket: process.env.AWS_BUCKET + '/' + process.env.AWS_FOLDER,
+                    Key: photo.name,
+                    Expires: 300
+                };
+
+                photo.url = s3.getSignedUrl('getObject', params);
+
+                results.push(photo);
+
+                if (results.length === photos.length)
+                    return res.json({ photos: results });
+
+            });
+        }).catch(err => {
+            results.push({ errors: err.message });
+
+            if (results.length === photos.length)
+                return res.json({ photos: results });
+        });
+    };
 };
 
 exports.details = function (req, res, next) {

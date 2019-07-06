@@ -4,6 +4,7 @@ var express      = require('express'),
     httpError    = require('http-errors'),
     logger       = require('morgan'),
     bodyParser   = require('body-parser'),
+    fileUpload   = require('express-fileupload'),
     mongoose     = require('mongoose'),
     dotenv       = require('dotenv').config({path: './.env'});
 
@@ -15,6 +16,7 @@ var isProduction = process.env.APP_ENV === 'production';
 app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
+app.use(fileUpload({ createParentPath: true }));
 
 // MongoDB
 mongoose.connect(process.env.DB_URI, {useNewUrlParser: true});
