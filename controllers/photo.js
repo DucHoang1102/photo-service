@@ -2,7 +2,9 @@ var mongoose      = require('mongoose'),
     Photo         = mongoose.model('Photo'),
     nameGenerator = require('id-random-generator'),
     fs            = require('fs'),
-    s3            = require('../aws/config');
+    s3            = require('../aws/config'),
+    getUrl        = require('../aws/getSignedUrl'),
+    renameObject  = require('../aws/renameObject');
 
 exports.index = function (req, res, next) {
     return res.json({
@@ -27,6 +29,11 @@ exports.view = function (req, res, next) {
 
     Promise.all([results]).then(results => {
         var photos = results[0]
+
+        for (let photo of photos) 
+            photo.url = getUrl(photo.name);
+    
+
         return res.json({photos: photos});
 
     }).catch( err => res.json({ errors: err.message }) );
@@ -63,45 +70,47 @@ exports.new = function (req, res, next) {
         photo.name = img.name;
         photo.size = img.size;
 
-        photo.save().then(photo => {
-            var params = {
-                Bucket: process.env.AWS_BUCKET + '/' + process.env.AWS_FOLDER,
-                Key: photo.name,
-                Body: img.data,
-                ContentType: 'image/png'
-            };
-
-            s3.upload(params, (s3Err, data) => {
-                if (s3Err) throw s3Err;
-
+        photo
+            .save()
+            .then(photo => {
                 var params = {
                     Bucket: process.env.AWS_BUCKET + '/' + process.env.AWS_FOLDER,
                     Key: photo.name,
-                    Expires: 300
+                    Body: img.data,
+                    ContentType: 'image/png'
                 };
 
-                photo.url = s3.getSignedUrl('getObject', params);
+                s3.upload(params, (s3Err, data) => {
+                    photo.url = getUrl(photo.name);
 
-                results.push(photo);
+                    results.push(photo);
+
+                    if (results.length === photos.length)
+                        return res.json({ photos: results });
+
+                });
+            })
+            .catch(err => {
+                var error = {
+                    'photo': photo.name,
+                    'message': err.message
+                };
+
+                results.push({ errors: error });
 
                 if (results.length === photos.length)
                     return res.json({ photos: results });
-
             });
-        }).catch(err => {
-            results.push({ errors: err.message });
-
-            if (results.length === photos.length)
-                return res.json({ photos: results });
-        });
     };
 };
 
 exports.details = function (req, res, next) {
-    Photo.findOne( {name: req.params.name} ).exec().then(results => {
-        if (!results) throw new Error('Photo not found');
+    Photo.findOne( {name: req.params.name} ).exec().then(photo => {
+        if (!photo) throw new Error('Photo not found');
+        
+        photo.url = getUrl(photo.name);
 
-        return res.json( { photos: results } );
+        return res.json( { photos: photo } );
 
     }).catch( err => res.json( { errors: err.message } ));
 };
@@ -115,18 +124,32 @@ exports.update = function (req, res, next) {
         }
 
         photo.save().then(photo => {
-            return res.json( { photos: photo } );
-            
+            var oldName = req.params.name,
+                newName = photo.name;
+
+            if (oldName !== newName) {
+                renameObject(oldName, newName, (s3Err, data) => {
+                    return res.json( { photos: photo } );
+                });
+            }
+            else
+                return res.json( { photos: photo } );
+
         }).catch( err => res.json( { errors: err.message } ));
 
     }).catch( err => res.json( { errors: err.message } ));
 };
 
 exports.delete = function (req, res, next) {
-    Photo.findOneAndRemove( {name: req.params.name} ).exec().then(results => {
-        if (!results) throw new Error('Photo not found');
+    Photo.findOneAndRemove( {name: req.params.name} ).exec().then(photo => {
+        var params = {
+            Bucket: process.env.AWS_BUCKET + '/' + process.env.AWS_FOLDER,
+            Key: req.params.name
+        };
 
-        return res.json( { photos: results } );
-        
+        s3.deleteObject(params, (s3Err, data) => {
+            return res.json( { photos: photo } );
+        });
+
     }).catch( err => res.json( { errors: err.message } ));
 };
