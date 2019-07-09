@@ -4,7 +4,7 @@ var getUrl = function (name) {
     var params = {
         Bucket: process.env.AWS_BUCKET + '/' + process.env.AWS_FOLDER,
         Key: name,
-        Expires: 300
+        Expires: parseInt(process.env.AWS_OBJECT_EXP)
     };
 
     var url = s3.getSignedUrl('getObject', params);

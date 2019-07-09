@@ -123,17 +123,32 @@ exports.update = function (req, res, next) {
             photo.name = req.body.photo.name;
         }
 
+        if (typeof req.body.photo.category !== 'undefined') {
+            photo.category = req.body.photo.category;
+        }
+
+        if (typeof req.body.photo.tags !== 'undefined') {
+            photo.tags = req.body.photo.tags;
+        }
+
+        if (typeof req.body.photo.note !== 'undefined') {
+            photo.note = req.body.photo.note;
+        }
+
         photo.save().then(photo => {
             var oldName = req.params.name,
                 newName = photo.name;
 
             if (oldName !== newName) {
                 renameObject(oldName, newName, (s3Err, data) => {
+                    photo.url = getUrl(newName);
                     return res.json( { photos: photo } );
                 });
             }
-            else
+            else {
+                photo.url = getUrl(photo.name);
                 return res.json( { photos: photo } );
+            }
 
         }).catch( err => res.json( { errors: err.message } ));
 
