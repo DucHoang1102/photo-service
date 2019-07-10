@@ -31,6 +31,7 @@
     "express-jwt": "^3.4.0",
     "express-session": "^1.16.1",
     "id-random-generator": "^1.1.0",
+    "image-thumbnail": "^1.0.4",
     "jsonwebtoken": "^7.4.3",
     "method-override": "^2.3.10",
     "methods": "^1.1.2",
